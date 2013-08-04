@@ -8,6 +8,8 @@
 #include <System/InputManager.hpp>
 #include <System/Keyboard.hpp>
 
+
+
 namespace SurvivorSurvivorHelicopter
 {
 	class Game
@@ -28,6 +30,9 @@ namespace SurvivorSurvivorHelicopter
 		ZED::System::Window					*m_pWindow;
 		ZED::System::InputManager			*m_pInputManager;
 		ZED::System::Keyboard				m_Keyboard;
+
+		ZED_BOOL	m_Running;
+		ZED_BOOL	m_FullScreen;
 	};
 }
 
