@@ -7,6 +7,7 @@
 #include <map>
 #include <Renderer/OGL/GLShader.hpp>
 #include <Renderer/OGL/GLModel.hpp>
+#include <Renderer/Renderer.hpp>
 
 namespace SurvivorSurvivorHelicopter
 {
@@ -44,10 +45,11 @@ namespace SurvivorSurvivorHelicopter
 	{
 	public:
 		Level( );
-		Level( const ZED_CHAR8 *p_pLevelPath );
+		Level( const ZED::Renderer::Renderer *p_pRenderer,
+			const ZED_CHAR8 *p_pLevelPath );
 		~Level( );
 
-		ZED_UINT32	Initialise( );
+		ZED_UINT32	Initialise( const ZED::Renderer::Renderer *p_pRenderer );
 		void		Render( );
 
 		ZED_UINT32	Load( const ZED_CHAR8 *p_pLevelPath );
@@ -66,6 +68,8 @@ namespace SurvivorSurvivorHelicopter
 
 		ZED_UINT32 TilePresent( const ZED_CHAR8 *p_pPath,
 			const ZED_BYTE p_ID ) const;
+
+		ZED::Renderer::Renderer	*m_pRenderer;
 
 		// TEMPORARY!
 		ZED::Renderer::GLModel	*m_pModel;
