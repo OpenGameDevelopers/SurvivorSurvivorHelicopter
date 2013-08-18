@@ -13,6 +13,7 @@ int main( int p_Argc, char **p_ppArgv )
 	{
 		std::cout << "[SSH!::main] <ERROR> "
 			"Failed to initialise the game" << std::endl;
+
 		return 0;
 	}
 

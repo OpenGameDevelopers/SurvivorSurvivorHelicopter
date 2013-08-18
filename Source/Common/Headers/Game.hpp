@@ -7,8 +7,7 @@
 #include <Renderer/CanvasDescription.hpp>
 #include <System/InputManager.hpp>
 #include <System/Keyboard.hpp>
-
-
+#include <Level.hpp>
 
 namespace SurvivorSurvivorHelicopter
 {
@@ -33,6 +32,8 @@ namespace SurvivorSurvivorHelicopter
 
 		ZED_BOOL	m_Running;
 		ZED_BOOL	m_FullScreen;
+
+		Level	*m_pTestLevel;
 	};
 }
 

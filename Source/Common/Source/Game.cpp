@@ -1,5 +1,7 @@
 #include <Game.hpp>
 #include <System/Memory.hpp>
+#include <System/File.hpp>
+#include <System/Time.hpp>
 #include <GitVersion.hpp>
 #include <cstring>
 
@@ -13,10 +15,12 @@ namespace SurvivorSurvivorHelicopter
 		memset( &m_Canvas, 0, sizeof( m_Canvas ) );
 		m_Running = ZED_FALSE;
 		m_FullScreen = ZED_FALSE;
+		m_pTestLevel = ZED_NULL;
 	}
 
 	Game::~Game( )
 	{
+		zedSafeDelete( m_pTestLevel );
 		zedSafeDelete( m_pRenderer );
 		zedSafeDelete( m_pInputManager );
 		zedSafeDelete( m_pWindow );
@@ -29,6 +33,7 @@ namespace SurvivorSurvivorHelicopter
 	void Game::Render( )
 	{
 		m_pRenderer->BeginScene( ZED_TRUE, ZED_TRUE, ZED_TRUE );
+		m_pTestLevel->Render( );
 		m_pRenderer->EndScene( );
 	}
 
@@ -36,6 +41,14 @@ namespace SurvivorSurvivorHelicopter
 	{
 		XEvent Event;
 		ZED::System::ZED_WINDOWDATA WinData = m_pWindow->WindowData( );
+		char *pBinDir = new ZED_CHAR8[ 256 ];
+		char *pLevelPath = new ZED_CHAR8[ 256 ];
+		ZED_UINT64 ElapsedTime = 0ULL;
+		ZED_UINT64 TimeStep = 16667ULL;
+		ZED_UINT64 OldTime = ZED::System::GetTimeMiS( );
+		ZED_UINT64 FrameTime = ZED::System::GetTimeMiS( );
+		ZED_MEMSIZE FrameRate = 0;
+		ZED_UINT64 Accumulator = 0ULL;
 		char WindowTitle[ 1024 ] = "SurvivorSurvivor Helicopter! Alpha Build";
 #ifdef ZED_BUILD_DEBUG
 		strcat( WindowTitle, " | [DEBUG] | [Ver. " );
@@ -52,6 +65,31 @@ namespace SurvivorSurvivorHelicopter
 #else
 #error Unknown build target
 #endif
+
+		memset( pBinDir, '\0', sizeof( ZED_CHAR8 )*256 );
+		memset( pLevelPath, '\0', sizeof( ZED_CHAR8 )*256 );
+
+		m_pTestLevel = new Level( );
+
+		ZED::System::GetExecutablePath( &pBinDir, 256 );
+
+		if( m_pTestLevel->Initialise( m_pRenderer ) != ZED_OK )
+		{
+			zedSafeDeleteArray( pLevelPath );
+			zedSafeDeleteArray( pBinDir );
+			return ZED_FAIL;
+		}
+
+		strcat( pLevelPath, pBinDir );
+		strcat( pLevelPath, "GameMedia/Levels/TestLevel.ssh" );
+
+		if( m_pTestLevel->Load( pLevelPath ) != ZED_OK )
+		{
+			zedSafeDeleteArray( pLevelPath );
+			zedSafeDeleteArray( pBinDir );
+			return ZED_FAIL;
+		}
+
 		m_pWindow->Title( WindowTitle );
 
 		while( m_Running == ZED_TRUE )
@@ -82,10 +120,38 @@ namespace SurvivorSurvivorHelicopter
 				m_Running = ZED_FALSE;
 			}
 
-			this->Update( 16667 );
+			const ZED_UINT64 NewTime = ZED::System::GetTimeMiS( );
+			ZED_UINT64 DeltaTime = NewTime - OldTime;
+
+			if( DeltaTime > 250000ULL )
+			{
+				DeltaTime = 250000ULL;
+			}
+
+			OldTime = NewTime;
+			Accumulator += DeltaTime;
+
+			while( Accumulator >= TimeStep )
+			{
+				this->Update( 16667 );
+
+				ElapsedTime += TimeStep;
+				Accumulator -= DeltaTime;
+			}
 
 			this->Render( );
+			++FrameRate;
+
+			if( ( NewTime - FrameTime ) > 1000000ULL )
+			{
+				zedTrace( "FPS: %d\n", FrameRate );
+				FrameTime = ZED::System::GetTimeMiS( );
+				FrameRate = 0;
+			}
 		}
+
+		zedSafeDeleteArray( pLevelPath );
+		zedSafeDeleteArray( pBinDir );
 
 		return ZED_OK;
 	}

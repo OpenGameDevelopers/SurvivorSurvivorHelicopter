@@ -14,6 +14,7 @@ namespace SurvivorSurvivorHelicopter
 		m_pTileMap = ZED_NULL;
 		m_pModel = ZED_NULL;
 		m_pShader = ZED_NULL;
+		m_pRenderer = ZED_NULL;
 	}
 
 	Level::Level( const ZED::Renderer::Renderer *p_pRenderer,
@@ -21,6 +22,7 @@ namespace SurvivorSurvivorHelicopter
 	{
 		m_pTileSetPath = ZED_NULL;
 		m_pTileMap = ZED_NULL;
+		m_pRenderer = ZED_NULL;
 
 		this->Initialise( p_pRenderer );
 		this->Load( p_pLevelPath );
@@ -28,8 +30,8 @@ namespace SurvivorSurvivorHelicopter
 
 	Level::~Level( )
 	{
-		zedSafeDeleteArray( m_pShader );
-		zedSafeDeleteArray( m_pModel );
+		zedSafeDelete( m_pShader );
+		zedSafeDelete( m_pModel );
 		zedSafeDeleteArray( m_pTileSetPath );
 		zedSafeDeleteArray( m_pTileMap );
 	}
@@ -87,6 +89,8 @@ namespace SurvivorSurvivorHelicopter
 		{
 			zedSafeDeleteArray( pBinDir );
 			zedSafeDeleteArray( pModelFile );
+
+			return ZED_FAIL;
 		}
 
 		zedSafeDeleteArray( pBinDir );
@@ -114,12 +118,117 @@ namespace SurvivorSurvivorHelicopter
 		zedSetConstant( Constants, 9, ZED_FLOAT1, "uShininess" );
 
 		m_pShader->SetConstantTypes( Constants, 10 );
+
+		ZED::Arithmetic::Vector3 GlobalAmbient( 0.0001f, 0.0001f, 0.0001f );
+		ZED::Arithmetic::Vector3 LightColour( 0.5f, 0.5f, 0.5f );
+		ZED::Arithmetic::Vector3 LightPosition( 0.0f, 200.0f, 0.0f );
+
+		m_pShader->Activate( );
+		m_pShader->SetConstantData( 1, ( void * )( &GlobalAmbient ) );
+		m_pShader->SetConstantData( 2, ( void * )( &LightColour ) );
+		m_pShader->SetConstantData( 3, ( void * )( &LightPosition ) );
 		
 		return ZED_OK;
 	}
 
 	void Level::Render( )
 	{
+		std::map< ZED_BYTE,
+			std::list< ZED::Arithmetic::Vector3 > >::const_iterator Itr =
+			m_TileToPosition.begin( );
+	
+		while( Itr != m_TileToPosition.end( ) )
+		{
+			ZED::Arithmetic::Matrix4x4	WVP;
+			ZED::Arithmetic::Matrix4x4	PerspProj;
+			ZED::Arithmetic::Matrix4x4	Translation;
+			ZED::Arithmetic::Matrix4x4	World;
+			ZED::Arithmetic::Vector3	CameraPosition( 0.0f, 900.0f, -100.0f );
+			ZED::Arithmetic::Vector3	Up( 0.0f, 1.0f, 0.0f );
+
+			m_pShader->Activate( );
+
+			m_pShader->SetConstantData( 4, ( void * )( &CameraPosition ) );
+
+			if( Itr->first == 0 )
+			{
+				ZED::Arithmetic::Vector3 Emissive( 0.0f, 0.0f, 0.0f );
+				ZED::Arithmetic::Vector3 Ambient( 0.0f, 0.0f, 0.0f );
+				ZED::Arithmetic::Vector3 Diffuse( 1.0f, 0.0f, 0.0f );
+				ZED::Arithmetic::Vector3 Specular( 0.0f, 0.0f, 0.0f );
+				ZED_FLOAT32	Shininess = 0.0f;
+
+				m_pShader->Activate( );
+
+				m_pShader->SetConstantData( 5, ( void * )( &Emissive ) );
+				m_pShader->SetConstantData( 6, ( void * )( &Ambient ) );
+				m_pShader->SetConstantData( 7, ( void * )( &Diffuse ) );
+				m_pShader->SetConstantData( 8, ( void * )( &Specular ) );
+				m_pShader->SetConstantData( 9, ( void * )( &Shininess ) );
+			}
+			else if( Itr->first == 1 )
+			{
+				ZED::Arithmetic::Vector3 Emissive( 0.0f, 0.0f, 0.0f );
+				ZED::Arithmetic::Vector3 Ambient( 0.0f, 0.0f, 0.0f );
+				ZED::Arithmetic::Vector3 Diffuse( 0.0f, 1.0f, 0.0f );
+				ZED::Arithmetic::Vector3 Specular( 0.0f, 0.0f, 0.0f );
+				ZED_FLOAT32	Shininess = 0.0f;
+
+				m_pShader->Activate( );
+
+				m_pShader->SetConstantData( 5, ( void * )( &Emissive ) );
+				m_pShader->SetConstantData( 6, ( void * )( &Ambient ) );
+				m_pShader->SetConstantData( 7, ( void * )( &Diffuse ) );
+				m_pShader->SetConstantData( 8, ( void * )( &Specular ) );
+				m_pShader->SetConstantData( 9, ( void * )( &Shininess ) );
+			}
+			else if( Itr->first == 2 )
+			{
+				ZED::Arithmetic::Vector3 Emissive( 0.0f, 0.0f, 0.0f );
+				ZED::Arithmetic::Vector3 Ambient( 0.0f, 0.0f, 0.0f );
+				ZED::Arithmetic::Vector3 Diffuse( 0.5f, 0.5f, 0.5f );
+				ZED::Arithmetic::Vector3 Specular( 0.0f, 0.0f, 0.0f );
+				ZED_FLOAT32	Shininess = 0.0f;
+
+				m_pShader->Activate( );
+
+				m_pShader->SetConstantData( 5, ( void * )( &Emissive ) );
+				m_pShader->SetConstantData( 6, ( void * )( &Ambient ) );
+				m_pShader->SetConstantData( 7, ( void * )( &Diffuse ) );
+				m_pShader->SetConstantData( 8, ( void * )( &Specular ) );
+				m_pShader->SetConstantData( 9, ( void * )( &Shininess ) );
+			}
+			std::list< ZED::Arithmetic::Vector3 >::const_iterator Itr2 =
+				Itr->second.begin( );
+			while( Itr2 != Itr->second.end( ) )
+			{
+				ZED::Arithmetic::Vector3 Position( Itr2->X( ), Itr2->Y( ),
+					Itr2->Z( ) );
+				ZED::Arithmetic::Vector3 Up( 0.0f, 1.0f, 0.0f );
+				ZED::Arithmetic::Vector3 LookPos( 0.0f, 0.0f, -200.0f );
+				ZED_FLOAT32 Matrix[ 16 ];
+
+				m_pRenderer->SetViewLookAt( CameraPosition, LookPos, Up );
+				m_pRenderer->PerspectiveProjectionMatrix( &PerspProj );
+				m_pRenderer->GetWVP( &World );
+
+				Translation.Translate( Position );
+
+				WVP = PerspProj*World*Translation;
+
+				WVP.AsFloat( Matrix );
+
+				m_pShader->Activate( );
+
+				m_pShader->SetConstantData( 0, Matrix );
+
+				m_pModel->Render( );
+
+				++Itr2;
+			}
+
+			++Itr;
+		}
 	}
 
 	ZED_UINT32 Level::Load( const ZED_CHAR8 *p_pLevelPath )
@@ -233,38 +342,43 @@ namespace SurvivorSurvivorHelicopter
 		ZED_FLOAT32 ZPosition = 0.0f;
 		ZED_MEMSIZE Counter = 0;
 
+		m_pData =
+			new LEVELTILE[ Header.Dimensions[ 0 ]*Header.Dimensions[ 1 ] ];
+		fread( m_pData, sizeof( LEVELTILE ),
+			Header.Dimensions[ 0 ]*Header.Dimensions[ 1 ], pFile );
+
 		for( ZED_UINT16 Row = 0; Row < Header.Dimensions[ 0 ]; ++Row )
 		{
 			for( ZED_UINT16 Col = 0; Col < Header.Dimensions[ 1 ]; ++Col )
 			{
-				switch( m_pData->pData[ Row*Col ].Type )
+				ZED::Arithmetic::Vector3 Position( ( 200.0f * Col ) - 100.0f,
+					0.0f, ( -200.0f * Row ) - 100.0f );
+				switch( m_pData[ ( Row*Header.Dimensions[ 1 ] ) + Col ].Type )
 				{
 					// Helicopter
 					case 0x0001:
 					{
-						m_TileToPosition[ 0 ].push_back(
-							ZED::Arithmetic::Vector3( ( 100.0f * Col ) + 50.0f,
-								0.0f, ( -100.0f * Row ) - 50.0f ) );
+						zedTrace( "Pushing a helicopter\n" );
+						m_TileToPosition[ 0 ].push_back( Position );
 						break;
 					}
 					// Spawn point
 					case 0x0002:
 					{
-						m_TileToPosition[ 1 ].push_back(
-							ZED::Arithmetic::Vector3( ( 100.0f * Col ) + 50.0f,
-								0.0f, ( -100.0f * Row ) - 50.0f ) );
+						zedTrace( "Pushing a spawn point\n" );
+						m_TileToPosition[ 1 ].push_back( Position );
 						break;
 					}
 					// Regular
 					case 0x0004:
 					{
-						m_TileToPosition[ 2 ].push_back(
-							ZED::Arithmetic::Vector3( ( 100.0f * Col ) + 50.0f,
-								0.0f, ( -100.0f * Row ) - 50.0f ) );
+						zedTrace( "Pushing a regular tile\n" );
+						m_TileToPosition[ 2 ].push_back( Position );
 						break;
 					}
 					default:
 					{
+						zedTrace( "Unknown tile\n" );
 						break;
 					}
 				}

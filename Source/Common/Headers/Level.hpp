@@ -62,7 +62,7 @@ namespace SurvivorSurvivorHelicopter
 	private:
 		ZED_UINT16	*m_pTileMap;
 		ZED_CHAR8	*m_pTileSetPath;
-		LPLEVELDATA	m_pData;
+		LEVELTILE	*m_pData;
 		std::map< ZED_BYTE, std::list< ZED::Arithmetic::Vector3 > >
 			m_TileToPosition;
 
