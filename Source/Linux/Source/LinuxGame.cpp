@@ -79,8 +79,6 @@ namespace SurvivorSurvivorHelicopter
 
 		m_Running = ZED_TRUE;
 
-		zedTrace( "Renderer: 0x%08X\n", m_pRenderer );
-
 		return ZED_OK;
 	}
 }
